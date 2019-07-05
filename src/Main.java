@@ -51,42 +51,32 @@ public class Main {
                 }
 
                 if (c == ')') {
-                    int a = stack.size() - 1;
-
-                    while (!stack.get(a).equals("(")) {
-                        System.out.println(stack.get(a));
-
-                        a --;
-                    }
-
-                    position ++;
-
-                    continue;
+//                    System.out.println(stack);
                 }
 
                 if (getPriority(String.valueOf(c)) <= getPriority(stack.peek())) {
                     int a = stack.size() - 1;
 
-                    while (getPriority(String.valueOf(c)) <= getPriority(stack.get(a)) &&
-                            !stack.get(a).equals("(")) {
-                        result.push(stack.pop());
+                    while (getPriority(String.valueOf(c)) <= getPriority(stack.get(a))) {
+                        if (stack.get(a).equals("(") == false)
+                            result.push(stack.pop());
+                        else
+                            stack.pop();
 
                         if (--a == -1)
                             break;
                     }
 
                     stack.push(String.valueOf(c));
-                } else {
+                } else
                     stack.push(String.valueOf(c));
-                }
             }
 
             position ++;
         }
 
-        while (stack.empty() == false) {
+        while (stack.empty() == false)
             result.push(stack.pop());
-        }
 
         return result;
     }
@@ -151,7 +141,7 @@ public class Main {
 //        Stack<String> stringStack = parseProgram("1 + 2 * 3 - 4");
 
 //        [ 6, 3, 2, +, *, 5, + ]
-        Stack<String> stringStack = parseProgram("6 * (3 + 2) + 5");
+        Stack<String> stringStack = parseProgram("6 * (3 + 2) / 5");
 
 //        [ 6, 3, *, 2, + ]
 //        Stack<String> stringStack = parseProgram("6 * 3 + 2");
