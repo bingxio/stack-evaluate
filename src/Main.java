@@ -18,6 +18,7 @@ public class Main {
     }
 
     private static Stack<String> parseProgram(@SuppressWarnings("SameParameterValue") String source) {
+
         Stack<String> result = new Stack<>();
         Stack<String> stack = new Stack<>();
 
@@ -50,16 +51,26 @@ public class Main {
                 }
 
                 if (c == ')') {
+                    int a = stack.size() - 1;
 
+                    while (!stack.get(a).equals("(")) {
+                        System.out.println(stack.get(a));
+
+                        a --;
+                    }
+
+                    position ++;
+
+                    continue;
                 }
 
                 if (getPriority(String.valueOf(c)) <= getPriority(stack.peek())) {
                     int a = stack.size() - 1;
 
-                    while (getPriority(String.valueOf(c)) <= getPriority(stack.get(a))) {
+                    while (getPriority(String.valueOf(c)) <= getPriority(stack.get(a)) && !stack.get(a).equals("(")) {
                         result.push(stack.pop());
 
-                        if (-- a == -1)
+                        if (--a == -1)
                             break;
                     }
 
@@ -133,12 +144,16 @@ public class Main {
     }
 
     public static void main(String[] args) {
-//        Stack<String> stringStack = parseProgram("a + b * c - (d + e) / f");
+//        Stack<String> stringStack = parseProgram("1 + 2 * 3 - (4 + 5) / 6");
 
 //        [ 1, 2, 3, *, +, 4, - ]
-        Stack<String> stringStack = parseProgram("1 + 2 * 3 - 4");
+//        Stack<String> stringStack = parseProgram("1 + 2 * 3 - 4");
 
-//        Stack<String> stringStack = parseProgram("1 * (3 + 2) + 5");
+//        [ 6, 3, 2, +, *, 5, + ]
+        Stack<String> stringStack = parseProgram("6 * (3 + 2) + 5");
+
+//        [ 6, 3, *, 2, + ]
+//        Stack<String> stringStack = parseProgram("6 * 3 + 2");
 
         System.out.println(stringStack);
 
