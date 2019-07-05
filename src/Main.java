@@ -67,7 +67,8 @@ public class Main {
                 if (getPriority(String.valueOf(c)) <= getPriority(stack.peek())) {
                     int a = stack.size() - 1;
 
-                    while (getPriority(String.valueOf(c)) <= getPriority(stack.get(a)) && !stack.get(a).equals("(")) {
+                    while (getPriority(String.valueOf(c)) <= getPriority(stack.get(a)) &&
+                            !stack.get(a).equals("(")) {
                         result.push(stack.pop());
 
                         if (--a == -1)
