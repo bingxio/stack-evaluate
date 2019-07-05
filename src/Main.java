@@ -1,4 +1,3 @@
-
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Stack;
@@ -19,14 +18,12 @@ public class Main {
     }
 
     private static Stack<String> parseProgram(@SuppressWarnings("SameParameterValue") String source) {
-
         Stack<String> result = new Stack<>();
         Stack<String> stack = new Stack<>();
 
         int position = 0;
 
         while (position < source.length()) {
-
             char c = source.charAt(position);
 
             if (Character.isSpaceChar(c)) {
@@ -35,7 +32,7 @@ public class Main {
                 continue;
             }
 
-            if (Character.isDigit(c)) {
+            if (Character.isLetterOrDigit(c)) {
                 result.push(String.valueOf(c));
 
                 position ++;
@@ -44,8 +41,7 @@ public class Main {
             }
 
             if (c == '+' || c == '-' || c == '*' || c == '/' || c == '(' || c == ')') {
-
-                if (stack.empty()) {
+                if (stack.empty() || c == '(') {
                     stack.push(String.valueOf(c));
 
                     position ++;
@@ -53,44 +49,96 @@ public class Main {
                     continue;
                 }
 
-                int a = 0;
+                if (c == ')') {
 
-                while (a < stack.size()) {
-                    if (getPriority(String.valueOf(c)) <= getPriority(stack.get(a))) {
+                }
+
+                if (getPriority(String.valueOf(c)) <= getPriority(stack.peek())) {
+                    int a = stack.size() - 1;
+
+                    while (getPriority(String.valueOf(c)) <= getPriority(stack.get(a))) {
                         result.push(stack.pop());
 
-                        a --;
-                    } else {
-                        stack.push(String.valueOf(c));
-
-                        a ++;
+                        if (-- a == -1)
+                            break;
                     }
 
-                    a ++;
+                    stack.push(String.valueOf(c));
+                } else {
+                    stack.push(String.valueOf(c));
                 }
             }
 
             position ++;
         }
 
-        if (stack.empty() == false) {
-            while (stack.size() != 0) {
-                result.push(stack.pop());
-            }
+        while (stack.empty() == false) {
+            result.push(stack.pop());
         }
 
         return result;
     }
 
     private static void visitor(Stack<String> stack) {
+        Stack<Integer> integerStack = new Stack<>();
 
+        int a, b, position = 0;
+
+        while (position < stack.size()) {
+            String str = stack.get(position);
+
+            if (Character.isDigit(str.charAt(0))) {
+                integerStack.push(Integer.valueOf(str));
+
+                position ++;
+
+                continue;
+            }
+
+            switch (str) {
+                case "+":
+                    b = integerStack.pop();
+                    a = integerStack.pop();
+
+                    integerStack.push(a + b);
+
+                    break;
+                case "-":
+                    b = integerStack.pop();
+                    a = integerStack.pop();
+
+                    integerStack.push(a - b);
+
+                    break;
+                case "*":
+                    b = integerStack.pop();
+                    a = integerStack.pop();
+
+                    integerStack.push(a * b);
+
+                    break;
+                case "/":
+                    b = integerStack.pop();
+                    a = integerStack.pop();
+
+                    integerStack.push(a / b);
+
+                    break;
+            }
+
+            position ++;
+        }
+
+        System.out.println(integerStack.peek());
     }
 
     public static void main(String[] args) {
-//        Stack<String> stringStack = parseProgram("1 + 2 * 3 - (4 + 5) / 6");
+//        Stack<String> stringStack = parseProgram("a + b * c - (d + e) / f");
 
 //        [ 1, 2, 3, *, +, 4, - ]
         Stack<String> stringStack = parseProgram("1 + 2 * 3 - 4");
+
+//        Stack<String> stringStack = parseProgram("1 * (3 + 2) + 5");
 
         System.out.println(stringStack);
 
