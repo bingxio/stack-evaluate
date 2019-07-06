@@ -143,6 +143,8 @@ public class Main {
     }
 
     public static void main(String[] args) {
+
+//        [ 1, 2, 3, *, +, 4, 5, +, -, 6, / ]
         Stack<String> stringStack1 = parseProgram("1 + 2 * 3 - (4 + 5) / 6");
 
 //        [ 1, 2, 3, *, +, 4, - ]
@@ -168,7 +170,7 @@ public class Main {
         for (int i = 0; i < 5; i ++) {
             Stack<String> stringStack = stackArrayList.get(i);
 
-            System.out.println(stringStack);
+            System.out.format("%-50s = ", stringStack);
 
             visitor(stringStack);
         }
