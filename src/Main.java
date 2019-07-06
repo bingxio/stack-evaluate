@@ -36,11 +36,6 @@ public class Main {
         void emitOpCode(OpCode opCode) {
             opCodeArrayList.add(opCode);
         }
-
-        @Override
-        public String toString() {
-            return "[ OpCodeList: " + opCodeArrayList + " | valueList: " + integerArrayList + " ]";
-        }
     }
 
     private static Stack<String> parseProgram(@SuppressWarnings("SameParameterValue") String source) {
@@ -114,59 +109,12 @@ public class Main {
         return result;
     }
 
-    private static void visitor(Stack<String> stack) {
-        Stack<Double> doubleStack = new Stack<>();
+    private static Chunk transform(Stack<String> stringStack) {
+        Chunk chunk = new Chunk();
 
-        int position = 0;
 
-        double a, b;
 
-        while (position < stack.size()) {
-            String str = stack.get(position);
-
-            if (Character.isDigit(str.charAt(0))) {
-                doubleStack.push(Double.valueOf(str));
-
-                position ++;
-
-                continue;
-            }
-
-            switch (str) {
-                case "+":
-                    b = doubleStack.pop();
-                    a = doubleStack.pop();
-
-                    doubleStack.push(a + b);
-
-                    break;
-                case "-":
-                    b = doubleStack.pop();
-                    a = doubleStack.pop();
-
-                    doubleStack.push(a - b);
-
-                    break;
-                case "*":
-                    b = doubleStack.pop();
-                    a = doubleStack.pop();
-
-                    doubleStack.push(a * b);
-
-                    break;
-                case "/":
-                    b = doubleStack.pop();
-                    a = doubleStack.pop();
-
-                    doubleStack.push(a / b);
-
-                    break;
-            }
-
-            position ++;
-        }
-
-        System.out.println(doubleStack.peek());
+        return chunk;
     }
 
     public static void main(String[] args) {
@@ -204,7 +152,7 @@ public class Main {
         for (int i = 0; i < 5; i ++) {
             Stack<String> stringStack = stackArrayList.get(i);
 
-            System.out.println(stringStack);
+            Chunk chunk = transform(stringStack);
         }
     }
 }
