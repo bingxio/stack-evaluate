@@ -2,6 +2,15 @@ import java.util.*;
 
 public class Main {
 
+    enum OpCode {
+        OP_LOCAL,
+        OP_ADD,
+        OP_SUBTRACT,
+        OP_MULTIPLY,
+        OP_DIVIDE,
+        OP_RETURN
+    }
+
     private static int getPriority(String s) {
         Map<String, Integer> map = new HashMap<>();
 
@@ -15,8 +24,26 @@ public class Main {
         return map.get(s);
     }
 
-    private static Stack<String> parseProgram(@SuppressWarnings("SameParameterValue") String source) {
+    private static class Chunk {
+        ArrayList<OpCode> opCodeArrayList = new ArrayList<>();
+        ArrayList<Integer> integerArrayList = new ArrayList<>();
 
+        void emitConstant(int value) {
+            opCodeArrayList.add(OpCode.OP_LOCAL);
+            integerArrayList.add(value);
+        }
+
+        void emitOpCode(OpCode opCode) {
+            opCodeArrayList.add(opCode);
+        }
+
+        @Override
+        public String toString() {
+            return "[ OpCodeList: " + opCodeArrayList + " | valueList: " + integerArrayList + " ]";
+        }
+    }
+
+    private static Stack<String> parseProgram(@SuppressWarnings("SameParameterValue") String source) {
         Stack<String> result = new Stack<>();
         Stack<String> stack = new Stack<>();
 
@@ -31,7 +58,7 @@ public class Main {
                 continue;
             }
 
-            if (Character.isLetterOrDigit(c)) {
+            if (Character.isDigit(c)) {
                 result.push(String.valueOf(c));
 
                 position ++;
@@ -154,6 +181,13 @@ public class Main {
         Stack<String> stringStack3 = parseProgram("6 * (3 + 2) / 5");
 
 //        [ 6, 3, *, 2, + ]
+//
+//        OP_LOCAL      6
+//        OP_LOCAL      3
+//        OP_MULTIPLY
+//        OP_LOCAL      2
+//        OP_ADD
+//        OP_RETURN
         Stack<String> stringStack4 = parseProgram("6 * 3 + 2");
 
 //        [ 1, 2, 3, +, 4, *, +, 5, - ]
@@ -170,9 +204,7 @@ public class Main {
         for (int i = 0; i < 5; i ++) {
             Stack<String> stringStack = stackArrayList.get(i);
 
-            System.out.format("%-50s = ", stringStack);
-
-            visitor(stringStack);
+            System.out.println(stringStack);
         }
     }
 }
