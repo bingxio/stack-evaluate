@@ -1,6 +1,4 @@
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Stack;
+import java.util.*;
 
 public class Main {
 
@@ -51,7 +49,12 @@ public class Main {
                 }
 
                 if (c == ')') {
-                    System.out.println(stack);
+                    while (stack.empty() == false && stack.peek().equals("(") == false)
+                        result.push(stack.pop());
+
+                    position ++;
+
+                    continue;
                 }
 
                 if (getPriority(String.valueOf(c)) <= getPriority(stack.peek())) {
@@ -60,8 +63,11 @@ public class Main {
                     while (getPriority(String.valueOf(c)) <= getPriority(stack.get(a))) {
                         if (stack.get(a).equals("(") == false)
                             result.push(stack.pop());
-                        else
+                        else {
                             stack.pop();
+
+                            break;
+                        }
 
                         if (--a == -1)
                             break;
@@ -82,15 +88,17 @@ public class Main {
     }
 
     private static void visitor(Stack<String> stack) {
-        Stack<Integer> integerStack = new Stack<>();
+        Stack<Double> doubleStack = new Stack<>();
 
-        int a, b, position = 0;
+        int position = 0;
+
+        double a, b;
 
         while (position < stack.size()) {
             String str = stack.get(position);
 
             if (Character.isDigit(str.charAt(0))) {
-                integerStack.push(Integer.valueOf(str));
+                doubleStack.push(Double.valueOf(str));
 
                 position ++;
 
@@ -99,31 +107,31 @@ public class Main {
 
             switch (str) {
                 case "+":
-                    b = integerStack.pop();
-                    a = integerStack.pop();
+                    b = doubleStack.pop();
+                    a = doubleStack.pop();
 
-                    integerStack.push(a + b);
+                    doubleStack.push(a + b);
 
                     break;
                 case "-":
-                    b = integerStack.pop();
-                    a = integerStack.pop();
+                    b = doubleStack.pop();
+                    a = doubleStack.pop();
 
-                    integerStack.push(a - b);
+                    doubleStack.push(a - b);
 
                     break;
                 case "*":
-                    b = integerStack.pop();
-                    a = integerStack.pop();
+                    b = doubleStack.pop();
+                    a = doubleStack.pop();
 
-                    integerStack.push(a * b);
+                    doubleStack.push(a * b);
 
                     break;
                 case "/":
-                    b = integerStack.pop();
-                    a = integerStack.pop();
+                    b = doubleStack.pop();
+                    a = doubleStack.pop();
 
-                    integerStack.push(a / b);
+                    doubleStack.push(a / b);
 
                     break;
             }
@@ -131,23 +139,38 @@ public class Main {
             position ++;
         }
 
-        System.out.println(integerStack.peek());
+        System.out.println(doubleStack.peek());
     }
 
     public static void main(String[] args) {
-//        Stack<String> stringStack = parseProgram("1 + 2 * 3 - (4 + 5) / 6");
+        Stack<String> stringStack1 = parseProgram("1 + 2 * 3 - (4 + 5) / 6");
 
 //        [ 1, 2, 3, *, +, 4, - ]
-//        Stack<String> stringStack = parseProgram("1 + 2 * 3 - 4");
+        Stack<String> stringStack2 = parseProgram("1 + 2 * 3 - 4");
 
-//        [ 6, 3, 2, +, *, 5, + ]
-        Stack<String> stringStack = parseProgram("6 * (3 + 2) / 5");
+//        [ 6, 3, 2, +, *, 5, / ]
+        Stack<String> stringStack3 = parseProgram("6 * (3 + 2) / 5");
 
 //        [ 6, 3, *, 2, + ]
-//        Stack<String> stringStack = parseProgram("6 * 3 + 2");
+        Stack<String> stringStack4 = parseProgram("6 * 3 + 2");
 
-        System.out.println(stringStack);
+//        [ 1, 2, 3, +, 4, *, +, 5, - ]
+        Stack<String> stringStack5 = parseProgram("1 + ((2 + 3) * 4) - 5");
 
-        visitor(stringStack);
+        ArrayList<Stack<String>> stackArrayList = new ArrayList<>();
+
+        stackArrayList.add(stringStack1);
+        stackArrayList.add(stringStack2);
+        stackArrayList.add(stringStack3);
+        stackArrayList.add(stringStack4);
+        stackArrayList.add(stringStack5);
+
+        for (int i = 0; i < 5; i ++) {
+            Stack<String> stringStack = stackArrayList.get(i);
+
+            System.out.println(stringStack);
+
+            visitor(stringStack);
+        }
     }
 }
