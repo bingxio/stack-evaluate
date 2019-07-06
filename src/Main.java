@@ -51,7 +51,7 @@ public class Main {
                 }
 
                 if (c == ')') {
-//                    System.out.println(stack);
+                    System.out.println(stack);
                 }
 
                 if (getPriority(String.valueOf(c)) <= getPriority(stack.peek())) {
