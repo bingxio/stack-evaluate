@@ -187,7 +187,7 @@ public class Main {
                     b = stack.pop();
                     a = stack.pop();
 
-                    stack.push( a - b);
+                    stack.push(a - b);
 
                     break;
                 case OP_MULTIPLY:
