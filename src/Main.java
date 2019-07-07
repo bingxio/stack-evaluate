@@ -42,12 +42,10 @@ public class Main {
                 System.out.print(opCodeStack.get(i));
 
                 if (opCodeStack.get(i).equals(OpCode.OP_LOCAL))
-                    System.out.format("%15d \n", integerStack.get(k ++));
+                    System.out.format("%10d \n", integerStack.get(k ++));
                 else
                     System.out.println("");
             }
-
-            System.out.println("==================");
         }
     }
 
@@ -175,45 +173,40 @@ public class Main {
         while (position < chunk.opCodeStack.size()) {
             switch (chunk.opCodeStack.get(position)) {
                 case OP_LOCAL:
-                    if (position != 0)
-                        k ++;
-                    else {
-                        position ++;
-
-                        continue;
-                    }
+                    stack.push(Double.valueOf(chunk.integerStack.get(k ++)));
 
                     break;
                 case OP_ADD:
-                    a = chunk.integerStack.get(k - 1);
-                    b = chunk.integerStack.get(k);
+                    b = stack.pop();
+                    a = stack.pop();
 
                     stack.push(a + b);
 
                     break;
                 case OP_SUBTRACT:
-                    a = chunk.integerStack.get(k - 1);
-                    b = chunk.integerStack.get(k);
+                    b = stack.pop();
+                    a = stack.pop();
 
-                    stack.push(a - b);
+                    stack.push( a - b);
 
                     break;
                 case OP_MULTIPLY:
-                    a = chunk.integerStack.get(k - 1);
-                    b = chunk.integerStack.get(k);
+                    b = stack.pop();
+                    a = stack.pop();
 
                     stack.push(a * b);
 
                     break;
                 case OP_DIVIDE:
-                    a = chunk.integerStack.get(k - 1);
-                    b = chunk.integerStack.get(k);
+                    b = stack.pop();
+                    a = stack.pop();
 
                     stack.push(a / b);
 
                     break;
                 case OP_RETURN:
                     System.out.println(stack.peek());
+
                     break;
             }
 
@@ -303,6 +296,8 @@ public class Main {
             chunk.debug();
 
             visitor(chunk);
+
+            System.out.println("==================");
         }
     }
 }
