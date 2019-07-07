@@ -26,11 +26,11 @@ public class Main {
 
     private static class Chunk {
         Stack<OpCode> opCodeStack = new Stack<>();
-        Stack<Double> doubleStack = new Stack<>();
+        Stack<Integer> integerStack = new Stack<>();
 
-        void emitConstant(double value) {
+        void emitConstant(int value) {
             opCodeStack.add(OpCode.OP_LOCAL);
-            doubleStack.add(value);
+            integerStack.add(value);
         }
 
         void emitOpCode(OpCode opCode) {
@@ -42,7 +42,7 @@ public class Main {
                 System.out.print(opCodeStack.get(i));
 
                 if (opCodeStack.get(i).equals(OpCode.OP_LOCAL))
-                    System.out.format("%15f \n", doubleStack.get(k ++));
+                    System.out.format("%15d \n", integerStack.get(k ++));
                 else
                     System.out.println("");
             }
@@ -155,7 +155,7 @@ public class Main {
                     continue;
             }
 
-            chunk.emitConstant(Double.valueOf(stringStack.get(position)));
+            chunk.emitConstant(Integer.valueOf(stringStack.get(position)));
 
             position ++;
         }
@@ -185,29 +185,29 @@ public class Main {
 
                     break;
                 case OP_ADD:
-                    a = chunk.doubleStack.get(k - 1);
-                    b = chunk.doubleStack.get(k);
+                    a = chunk.integerStack.get(k - 1);
+                    b = chunk.integerStack.get(k);
 
                     stack.push(a + b);
 
                     break;
                 case OP_SUBTRACT:
-                    a = chunk.doubleStack.get(k - 1);
-                    b = chunk.doubleStack.get(k);
+                    a = chunk.integerStack.get(k - 1);
+                    b = chunk.integerStack.get(k);
 
                     stack.push(a - b);
 
                     break;
                 case OP_MULTIPLY:
-                    a = chunk.doubleStack.get(k - 1);
-                    b = chunk.doubleStack.get(k);
+                    a = chunk.integerStack.get(k - 1);
+                    b = chunk.integerStack.get(k);
 
                     stack.push(a * b);
 
                     break;
                 case OP_DIVIDE:
-                    a = chunk.doubleStack.get(k - 1);
-                    b = chunk.doubleStack.get(k);
+                    a = chunk.integerStack.get(k - 1);
+                    b = chunk.integerStack.get(k);
 
                     stack.push(a / b);
 
