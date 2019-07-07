@@ -42,7 +42,7 @@ public class Main {
                 System.out.print(opCodeStack.get(i));
 
                 if (opCodeStack.get(i).equals(OpCode.OP_LOCAL))
-                    System.out.format("%10f \n", doubleStack.get(k ++));
+                    System.out.format("%15f \n", doubleStack.get(k ++));
                 else
                     System.out.println("");
             }
@@ -225,40 +225,40 @@ public class Main {
 
 //        [ 1, 2, 3, *, +, 4, 5, +, -, 6, / ]
 //
-//        OP_LOCAL  1.000000
-//        OP_LOCAL  2.000000
-//        OP_LOCAL  3.000000
+//        OP_LOCAL      1.000000
+//        OP_LOCAL      2.000000
+//        OP_LOCAL      3.000000
 //        OP_MULTIPLY
 //        OP_ADD
-//        OP_LOCAL  4.000000
-//        OP_LOCAL  5.000000
+//        OP_LOCAL      4.000000
+//        OP_LOCAL      5.000000
 //        OP_ADD
 //        OP_SUBTRACT
-//        OP_LOCAL  6.000000
+//        OP_LOCAL      6.000000
 //        OP_DIVIDE
 //        OP_RETURN
         Stack<String> stringStack1 = parseProgram("1 + 2 * 3 - (4 + 5) / 6");
 
 //        [ 1, 2, 3, *, +, 4, - ]
 //
-//        OP_LOCAL  1.000000
-//        OP_LOCAL  2.000000
-//        OP_LOCAL  3.000000
+//        OP_LOCAL      1.000000
+//        OP_LOCAL      2.000000
+//        OP_LOCAL      3.000000
 //        OP_MULTIPLY
 //        OP_ADD
-//        OP_LOCAL  4.000000
+//        OP_LOCAL      4.000000
 //        OP_SUBTRACT
 //        OP_RETURN
         Stack<String> stringStack2 = parseProgram("1 + 2 * 3 - 4");
 
 //        [ 6, 3, 2, +, *, 5, / ]
 //
-//        OP_LOCAL  6.000000
-//        OP_LOCAL  3.000000
-//        OP_LOCAL  2.000000
+//        OP_LOCAL      6.000000
+//        OP_LOCAL      3.000000
+//        OP_LOCAL      2.000000
 //        OP_ADD
 //        OP_MULTIPLY
-//        OP_LOCAL  5.000000
+//        OP_LOCAL      5.000000
 //        OP_DIVIDE
 //        OP_RETURN
         Stack<String> stringStack3 = parseProgram("6 * (3 + 2) / 5");
@@ -275,14 +275,14 @@ public class Main {
 
 //        [ 1, 2, 3, +, 4, *, +, 5, - ]
 //
-//        OP_LOCAL  1.000000
-//        OP_LOCAL  2.000000
-//        OP_LOCAL  3.000000
+//        OP_LOCAL      1.000000
+//        OP_LOCAL      2.000000
+//        OP_LOCAL      3.000000
 //        OP_ADD
-//        OP_LOCAL  4.000000
+//        OP_LOCAL      4.000000
 //        OP_MULTIPLY
 //        OP_ADD
-//        OP_LOCAL  5.000000
+//        OP_LOCAL      5.000000
 //        OP_SUBTRACT
 //        OP_RETURN
         Stack<String> stringStack5 = parseProgram("1 + ((2 + 3) * 4) - 5");
