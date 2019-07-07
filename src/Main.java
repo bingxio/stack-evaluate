@@ -25,20 +25,33 @@ public class Main {
     }
 
     private static class Chunk {
-        ArrayList<OpCode> opCodeArrayList = new ArrayList<>();
-        ArrayList<Integer> integerArrayList = new ArrayList<>();
+        Stack<OpCode> opCodeStack = new Stack<>();
+        Stack<Double> doubleStack = new Stack<>();
 
-        void emitConstant(int value) {
-            opCodeArrayList.add(OpCode.OP_LOCAL);
-            integerArrayList.add(value);
+        void emitConstant(double value) {
+            opCodeStack.add(OpCode.OP_LOCAL);
+            doubleStack.add(value);
         }
 
         void emitOpCode(OpCode opCode) {
-            opCodeArrayList.add(opCode);
+            opCodeStack.add(opCode);
+        }
+
+        void debug() {
+            for (int i = 0, k = 0; i < opCodeStack.size(); i ++) {
+                System.out.print(opCodeStack.get(i));
+
+                if (opCodeStack.get(i).equals(OpCode.OP_LOCAL))
+                    System.out.format("%10f \n", doubleStack.get(k ++));
+                else
+                    System.out.println("");
+            }
+
+            System.out.println("==================");
         }
     }
 
-    private static Stack<String> parseProgram(@SuppressWarnings("SameParameterValue") String source) {
+    private static Stack<String> parseProgram(String source) {
         Stack<String> result = new Stack<>();
         Stack<String> stack = new Stack<>();
 
@@ -112,33 +125,166 @@ public class Main {
     private static Chunk transform(Stack<String> stringStack) {
         Chunk chunk = new Chunk();
 
+        int position = 0;
 
+        while (position < stringStack.size()) {
+            switch (stringStack.get(position)) {
+                case "+":
+                    chunk.emitOpCode(OpCode.OP_ADD);
+
+                    position ++;
+
+                    continue;
+                case "-":
+                    chunk.emitOpCode(OpCode.OP_SUBTRACT);
+
+                    position ++;
+
+                    continue;
+                case "*":
+                    chunk.emitOpCode(OpCode.OP_MULTIPLY);
+
+                    position ++;
+
+                    continue;
+                case "/":
+                    chunk.emitOpCode(OpCode.OP_DIVIDE);
+
+                    position ++;
+
+                    continue;
+            }
+
+            chunk.emitConstant(Double.valueOf(stringStack.get(position)));
+
+            position ++;
+        }
+
+        chunk.emitOpCode(OpCode.OP_RETURN);
 
         return chunk;
+    }
+
+    private static void visitor(Chunk chunk) {
+        int position = 0, k = 0;
+
+        Stack<Double> stack = new Stack<>();
+
+        double a, b;
+
+        while (position < chunk.opCodeStack.size()) {
+            switch (chunk.opCodeStack.get(position)) {
+                case OP_LOCAL:
+                    if (position != 0)
+                        k ++;
+                    else {
+                        position ++;
+
+                        continue;
+                    }
+
+                    break;
+                case OP_ADD:
+                    a = chunk.doubleStack.get(k - 1);
+                    b = chunk.doubleStack.get(k);
+
+                    stack.push(a + b);
+
+                    break;
+                case OP_SUBTRACT:
+                    a = chunk.doubleStack.get(k - 1);
+                    b = chunk.doubleStack.get(k);
+
+                    stack.push(a - b);
+
+                    break;
+                case OP_MULTIPLY:
+                    a = chunk.doubleStack.get(k - 1);
+                    b = chunk.doubleStack.get(k);
+
+                    stack.push(a * b);
+
+                    break;
+                case OP_DIVIDE:
+                    a = chunk.doubleStack.get(k - 1);
+                    b = chunk.doubleStack.get(k);
+
+                    stack.push(a / b);
+
+                    break;
+                case OP_RETURN:
+                    System.out.println(stack.peek());
+                    break;
+            }
+
+            position ++;
+        }
     }
 
     public static void main(String[] args) {
 
 //        [ 1, 2, 3, *, +, 4, 5, +, -, 6, / ]
+//
+//        OP_LOCAL  1.000000
+//        OP_LOCAL  2.000000
+//        OP_LOCAL  3.000000
+//        OP_MULTIPLY
+//        OP_ADD
+//        OP_LOCAL  4.000000
+//        OP_LOCAL  5.000000
+//        OP_ADD
+//        OP_SUBTRACT
+//        OP_LOCAL  6.000000
+//        OP_DIVIDE
+//        OP_RETURN
         Stack<String> stringStack1 = parseProgram("1 + 2 * 3 - (4 + 5) / 6");
 
 //        [ 1, 2, 3, *, +, 4, - ]
+//
+//        OP_LOCAL  1.000000
+//        OP_LOCAL  2.000000
+//        OP_LOCAL  3.000000
+//        OP_MULTIPLY
+//        OP_ADD
+//        OP_LOCAL  4.000000
+//        OP_SUBTRACT
+//        OP_RETURN
         Stack<String> stringStack2 = parseProgram("1 + 2 * 3 - 4");
 
 //        [ 6, 3, 2, +, *, 5, / ]
+//
+//        OP_LOCAL  6.000000
+//        OP_LOCAL  3.000000
+//        OP_LOCAL  2.000000
+//        OP_ADD
+//        OP_MULTIPLY
+//        OP_LOCAL  5.000000
+//        OP_DIVIDE
+//        OP_RETURN
         Stack<String> stringStack3 = parseProgram("6 * (3 + 2) / 5");
 
 //        [ 6, 3, *, 2, + ]
 //
-//        OP_LOCAL      6
-//        OP_LOCAL      3
+//        OP_LOCAL      6.000000
+//        OP_LOCAL      3.000000
 //        OP_MULTIPLY
-//        OP_LOCAL      2
+//        OP_LOCAL      2.000000
 //        OP_ADD
 //        OP_RETURN
         Stack<String> stringStack4 = parseProgram("6 * 3 + 2");
 
 //        [ 1, 2, 3, +, 4, *, +, 5, - ]
+//
+//        OP_LOCAL  1.000000
+//        OP_LOCAL  2.000000
+//        OP_LOCAL  3.000000
+//        OP_ADD
+//        OP_LOCAL  4.000000
+//        OP_MULTIPLY
+//        OP_ADD
+//        OP_LOCAL  5.000000
+//        OP_SUBTRACT
+//        OP_RETURN
         Stack<String> stringStack5 = parseProgram("1 + ((2 + 3) * 4) - 5");
 
         ArrayList<Stack<String>> stackArrayList = new ArrayList<>();
@@ -153,6 +299,10 @@ public class Main {
             Stack<String> stringStack = stackArrayList.get(i);
 
             Chunk chunk = transform(stringStack);
+
+            chunk.debug();
+
+            visitor(chunk);
         }
     }
 }
