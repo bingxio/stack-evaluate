@@ -1,3 +1,4 @@
+
 enum TokenType {
     TokenAdd,       // +
     TokenSubtract,  // -
@@ -34,21 +35,40 @@ impl Token {
 }
 
 fn main() {
-    let tests = vec![
-        "1 + 2 * 3 - 4"
-    ];
+    let mut tests: Vec<String> = Vec::new();
+
+    tests.push(String::from("1 + 2 * 3 - 4"));
 
     for x in tests {
         let tokens = parse_program(x);
     }
 }
 
-fn parse_program(src: &str) -> Vec<Token> {
+fn parse_program(mut src: String) -> Vec<Token> {
     let mut tokens: Vec<Token> = Vec::new();
 
-    let a = src.chars().filter(|x| (x == &' '));
+    src = src.replace(" ", "");
 
-    println!("{:?}", a);
+    let position = 0;
+
+    while position < src.len() {
+        tokens.push(
+            Token {
+                literal: src.get(position).to_string(),
+                typedef: match src.get(position) {
+                    '+' => TokenType::TokenAdd,
+                    '-' => TokenType::TokenSubtract,
+                    '*' => TokenType::TokenMultiply,
+                    '/' => TokenType::TokenDivide,
+                    '(' => TokenType::TokenLParen,
+                    ')' => TokenType::TokenRParen,
+                    '0'..'9' => TokenType::TokenNumber
+                }
+            }
+        );
+
+        position += 1;
+    }
 
     return tokens
 }
