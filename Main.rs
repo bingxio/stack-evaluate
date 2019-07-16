@@ -1,74 +1,136 @@
-
-enum TokenType {
-    TokenAdd,       // +
-    TokenSubtract,  // -
-    TokenMultiply,  // *
-    TokenDivide,    // /
-    TokenLParen,    //（
-    TokenRParen,    // ）
-    TokenNumber     // 0..9
-}
-
-fn token_type_string(token_type: TokenType) -> String {
-    match token_type {
-        TokenType::TokenAdd => String::from("TOKEN_ADD"),
-        TokenType::TokenSubtract => String::from("TOKEN_SUBTRACT"),
-        TokenType::TokenMultiply => String::from("TOKEN_MULTIPLY"),
-        TokenType::TokenDivide => String::from("TOKEN_DIVIDE"),
-        TokenType::TokenLParen => String::from("TOKEN_LPAREN"),
-        TokenType::TokenRParen => String::from("TOKEN_RPAREN"),
-        TokenType::TokenNumber => String::from("TOKEN_NUMBER")
-    }
-}
-
-struct Token { literal: String, typedef: TokenType }
-
-impl Token {
-    fn new(literal: String, typedef: TokenType) -> Token {
-        Token { literal, typedef }
-    }
-
-    fn show(self) -> String {
-        format!("[ Token: literal = {}, typedef = {} ]",
-                self.literal, token_type_string(self.typedef))
-    }
-}
+use std::collections::HashMap;
 
 fn main() {
-    let mut tests: Vec<String> = Vec::new();
+    let tests = vec![
+        // 1 2 3 * + 4 -
+        "1 + 2 * 3 - 4".to_string(),
+        // 1 2 + 3 * 4 -
+        "(1 + 2) * 3 - 4".to_string(),
+        // 1 2 3 * + 4 5 + - 6 /
+        "1 + 2 * 3 - (4 + 5) / 6".to_string()
+    ];
 
-    tests.push(String::from("1 + 2 * 3 - 4"));
+    for i in tests {
+        let stack = parse_program(i);
 
-    for x in tests {
-        let tokens = parse_program(x);
+        for i in stack {
+            print!("{} ", i);
+        }
+
+        println!("");
     }
 }
 
-fn parse_program(mut src: String) -> Vec<Token> {
-    let mut tokens: Vec<Token> = Vec::new();
+fn get_priority(i: char) -> Option<u8> {
+    let mut map: HashMap<char, u8> = HashMap::new();
 
-    src = src.replace(" ", "");
+    map.insert('+', 1);
+    map.insert('-', 1);
+    map.insert('*', 2);
+    map.insert('/', 2);
+    map.insert('(', 3);
+    map.insert(')', 3);
 
-    let position = 0;
+    return map.get(&i).cloned();
+}
 
-    while position < src.len() {
-        tokens.push(
-            Token {
-                literal: src.get(position).to_string(),
-                typedef: match src.get(position) {
-                    '+' => TokenType::TokenAdd,
-                    '-' => TokenType::TokenSubtract,
-                    '*' => TokenType::TokenMultiply,
-                    '/' => TokenType::TokenDivide,
-                    '(' => TokenType::TokenLParen,
-                    ')' => TokenType::TokenRParen,
-                    '0'..'9' => TokenType::TokenNumber
+fn parse_program(mut source: String) -> Vec<char> {
+    let mut backup: Vec<char> = Vec::new();
+    let mut result: Vec<char> = Vec::new();
+
+    source = source.replace(" ", "");
+
+    for i in source.chars() {
+        match i {
+            '0'..='9' => result.push(i),
+
+            '(' => backup.push(i),
+
+            ')' => loop {
+                let a = backup.pop().unwrap();
+
+                if a == '(' || backup.is_empty() {
+                    break;
+                } else {
+                    result.push(a);
                 }
             }
-        );
 
-        position += 1;
+            _ => {
+                let mut a = backup.len() as isize - 1;
+
+                while a != -1 && get_priority(i) <= get_priority(backup[a as usize]) {
+                    if backup[a as usize] != '(' {
+                        result.push(
+                            backup.pop().unwrap()
+                        );
+                    } else {
+                        break;
+                    }
+
+                    a -= 1;
+                }
+
+                backup.push(i);
+            }
+        }
     }
 
-    return tokens
+    while backup.is_empty() == false {
+        result.push(
+            backup.pop().unwrap()
+        );
+    }
+
+    return result;
+}
+
+enum OpCode {
+    OpAdd,      // +
+    OpSubtract, // -
+    OpMultiply, // *
+    OpDivide,   // /
+    OpNumber,   // 0..9
+    OpReturn    // return
+}
+
+fn opcode_string(op: OpCode) -> String {
+    String::from(match op {
+        OpCode::OpAdd => "OP_ADD",
+        OpCode::OpSubtract => "OP_SUBTRACT",
+        OpCode::OpMultiply => "OP_MULTIPLY",
+        OpCode::OpDivide => "OP_DIVIDE",
+        OpCode::OpNumber => "OP_NUMBER",
+        OpCode::OpReturn => "OP_RETURN"
+    })
+}
+
+struct Chunk<'a> {
+    opcode_stack: &'a mut Vec<OpCode>,
+    values_stack: &'a mut Vec<i32>
+}
+
+impl Chunk<'_> {
+    fn emit_constant(self, value: i32) {
+        self.opcode_stack.push(OpCode::OpNumber);
+        self.values_stack.push(value);
+    }
+
+    fn emit_opcode(self, opcode: OpCode) {
+        self.opcode_stack.push(opcode);
+    }
+
+    fn show() {}
+}
+
+fn transform<'a>(stack: Vec<char>) -> Chunk<'a> {
+    let mut a: Vec<OpCode> = Vec::new();
+    let mut b: Vec<i32> = Vec::new();
+
+    let chunk = Chunk {
+        opcode_stack: &mut a,
+        values_stack: &mut b
+    };
+
+    return chunk;
 }
