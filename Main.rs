@@ -1,23 +1,29 @@
 use std::collections::HashMap;
+use std::cmp::Ordering;
+use std::any::Any;
 
 fn main() {
     let tests = vec![
         // 1 2 3 * + 4 -
         "1 + 2 * 3 - 4".to_string(),
         // 1 2 + 3 * 4 -
-        "(1 + 2) * 3 - 4".to_string(),
+//        "(1 + 2) * 3 - 4".to_string(),
         // 1 2 3 * + 4 5 + - 6 /
-        "1 + 2 * 3 - (4 + 5) / 6".to_string()
+//        "1 + 2 * 3 - (4 + 5) / 6".to_string()
     ];
 
     for i in tests {
         let stack = parse_program(i);
 
-        for i in stack {
+        for i in stack.clone() {
             print!("{} ", i);
         }
 
-        println!("");
+        println!();
+
+        let chunk = transform(stack);
+
+        chunk.show();
     }
 }
 
@@ -90,47 +96,83 @@ enum OpCode {
     OpSubtract, // -
     OpMultiply, // *
     OpDivide,   // /
-    OpNumber,   // 0..9
+    OpLocal,   // 0..9
     OpReturn    // return
 }
 
-fn opcode_string(op: OpCode) -> String {
+fn opcode_string(op: &OpCode) -> String {
     String::from(match op {
         OpCode::OpAdd => "OP_ADD",
         OpCode::OpSubtract => "OP_SUBTRACT",
         OpCode::OpMultiply => "OP_MULTIPLY",
         OpCode::OpDivide => "OP_DIVIDE",
-        OpCode::OpNumber => "OP_NUMBER",
+        OpCode::OpLocal => "OP_LOCAL",
         OpCode::OpReturn => "OP_RETURN"
     })
 }
 
-struct Chunk<'a> {
-    opcode_stack: &'a mut Vec<OpCode>,
-    values_stack: &'a mut Vec<i32>
+struct Chunk {
+    opcode_stack: Vec<OpCode>,
+    values_stack: Vec<i32>
 }
 
-impl Chunk<'_> {
-    fn emit_constant(self, value: i32) {
-        self.opcode_stack.push(OpCode::OpNumber);
+impl Chunk {
+    fn emit_constant(&mut self, value: i32) {
+        self.opcode_stack.push(OpCode::OpLocal);
         self.values_stack.push(value);
     }
 
-    fn emit_opcode(self, opcode: OpCode) {
+    fn emit_opcode(&mut self, opcode: OpCode) {
         self.opcode_stack.push(opcode);
     }
 
-    fn show() {}
+    fn show(self) {
+        // 12 4
+        println!("{} {}", self.opcode_stack.len(), self.values_stack.len());
+
+        let k = 0;
+
+        for i in self.opcode_stack.iter() {
+            print!("{}", opcode_string(i));
+
+            match i.type_id().cmp(&OpCode::OpLocal.type_id()) {
+                Ordering::Equal =>
+                    println!("     {}", self.values_stack.get(k).unwrap()),
+
+                _ => println!()
+            }
+        }
+    }
 }
 
-fn transform<'a>(stack: Vec<char>) -> Chunk<'a> {
-    let mut a: Vec<OpCode> = Vec::new();
-    let mut b: Vec<i32> = Vec::new();
+fn transform(stack: Vec<char>) -> Chunk {
+    let a: Vec<OpCode> = Vec::new();
+    let b: Vec<i32> = Vec::new();
 
-    let chunk = Chunk {
-        opcode_stack: &mut a,
-        values_stack: &mut b
+    let mut chunk = Chunk {
+        opcode_stack: a,
+        values_stack: b
     };
+
+    for i in stack {
+        println!("{}", i);
+
+        match i {
+            '0'..='9' => {
+                chunk.emit_opcode(OpCode::OpLocal);
+                chunk.emit_constant(i as i32);
+            }
+
+            '+' => chunk.emit_opcode(OpCode::OpAdd),
+            '-' => chunk.emit_opcode(OpCode::OpSubtract),
+            '*' => chunk.emit_opcode(OpCode::OpMultiply),
+            '/' => chunk.emit_opcode(OpCode::OpDivide),
+
+            _ => {}
+        }
+    }
+
+    chunk.emit_opcode(OpCode::OpReturn);
 
     return chunk;
 }
