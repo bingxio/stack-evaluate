@@ -127,17 +127,16 @@ impl Chunk {
     }
 
     fn show(self) {
-        // 12 4
-        println!("{} {}", self.opcode_stack.len(), self.values_stack.len());
-
-        let k = 0;
+        let mut k = 0;
 
         for i in self.opcode_stack.iter() {
             print!("{}", opcode_string(i));
 
             match i.type_id().cmp(&OpCode::OpLocal.type_id()) {
-                Ordering::Equal =>
-                    println!("     {}", self.values_stack.get(k).unwrap()),
+                Ordering::Equal => {
+                    println!("     {}", self.values_stack.get(k).unwrap());
+                    k += 1;
+                },
 
                 _ => println!()
             }
@@ -155,20 +154,15 @@ fn transform(stack: Vec<char>) -> Chunk {
     };
 
     for i in stack {
-        println!("{}", i);
-
         match i {
-            '0'..='9' => {
-                chunk.emit_opcode(OpCode::OpLocal);
-                chunk.emit_constant(i as i32);
-            }
+            '0'..='9' => chunk.emit_constant(i as i32),
 
             '+' => chunk.emit_opcode(OpCode::OpAdd),
             '-' => chunk.emit_opcode(OpCode::OpSubtract),
             '*' => chunk.emit_opcode(OpCode::OpMultiply),
             '/' => chunk.emit_opcode(OpCode::OpDivide),
 
-            _ => {}
+            _ => unimplemented!()
         }
     }
 
