@@ -1,6 +1,4 @@
 use std::collections::HashMap;
-use std::cmp::Ordering;
-use std::any::Any;
 
 fn main() {
     let tests = vec![
@@ -23,7 +21,7 @@ fn main() {
 
         let chunk = transform(stack);
 
-        chunk.show();
+        chunk.display();
     }
 }
 
@@ -100,15 +98,22 @@ enum OpCode {
     OpReturn    // return
 }
 
-fn opcode_string(op: &OpCode) -> String {
-    String::from(match op {
+fn opcode_string(op: &OpCode) -> &'static str {
+    return match op {
         OpCode::OpAdd => "OP_ADD",
         OpCode::OpSubtract => "OP_SUBTRACT",
         OpCode::OpMultiply => "OP_MULTIPLY",
         OpCode::OpDivide => "OP_DIVIDE",
         OpCode::OpLocal => "OP_LOCAL",
         OpCode::OpReturn => "OP_RETURN"
-    })
+    }
+}
+
+impl PartialEq for OpCode {
+    // compare two opcode is equal.
+    fn eq(&self, other: &Self) -> bool {
+        self == other
+    }
 }
 
 struct Chunk {
@@ -116,7 +121,17 @@ struct Chunk {
     values_stack: Vec<i32>
 }
 
-impl Chunk {
+trait ChunkImpl {
+    // emit a OP_LOCAL and some value to chunk.
+    fn emit_constant(&mut self, value: i32);
+    // only emit a opcode.
+    fn emit_opcode(&mut self, opcode: OpCode);
+    // display opcodes and values.
+    // display value if it is OP_LOCAL else only opcode.
+    fn display(self);
+}
+
+impl ChunkImpl for Chunk {
     fn emit_constant(&mut self, value: i32) {
         self.opcode_stack.push(OpCode::OpLocal);
         self.values_stack.push(value);
@@ -126,19 +141,17 @@ impl Chunk {
         self.opcode_stack.push(opcode);
     }
 
-    fn show(self) {
+    fn display(self) {
         let mut k = 0;
 
         for i in self.opcode_stack.iter() {
             print!("{}", opcode_string(i));
 
-            match i.type_id().cmp(&OpCode::OpLocal.type_id()) {
-                Ordering::Equal => {
-                    println!("     {}", self.values_stack.get(k).unwrap());
-                    k += 1;
-                },
-
-                _ => println!()
+            if i == &OpCode::OpLocal {
+                println!(" {}", self.values_stack.get(k).unwrap());
+                k += 1;
+            } else {
+                println!();
             }
         }
     }
