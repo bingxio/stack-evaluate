@@ -5,12 +5,15 @@ fn main() {
         // 1 2 3 * + 4 -
         "1 + 2 * 3 - 4".to_string(),
         // 1 2 + 3 * 4 -
-//        "(1 + 2) * 3 - 4".to_string(),
+        "(1 + 2) * 3 - 4".to_string(),
         // 1 2 3 * + 4 5 + - 6 /
-//        "1 + 2 * 3 - (4 + 5) / 6".to_string()
+        "1 + 2 * 3 - (4 + 5) / 6".to_string()
     ];
 
     for i in tests {
+        print!("{} -> ", i);
+
+        // parse source expression to tokens.
         let stack = parse_program(i);
 
         for i in stack.clone() {
@@ -19,9 +22,13 @@ fn main() {
 
         println!();
 
+        // transform tokens to data and opcode chunk.
         let chunk = transform(stack);
 
         chunk.display();
+
+        // visit expression to get target value.
+        visitor(chunk);
     }
 }
 
@@ -94,25 +101,18 @@ enum OpCode {
     OpSubtract, // -
     OpMultiply, // *
     OpDivide,   // /
-    OpLocal,   // 0..9
+    OpLocal,    // 0..9
     OpReturn    // return
 }
 
 fn opcode_string(op: &OpCode) -> &'static str {
-    return match op {
+    match op {
         OpCode::OpAdd => "OP_ADD",
         OpCode::OpSubtract => "OP_SUBTRACT",
         OpCode::OpMultiply => "OP_MULTIPLY",
         OpCode::OpDivide => "OP_DIVIDE",
         OpCode::OpLocal => "OP_LOCAL",
         OpCode::OpReturn => "OP_RETURN"
-    }
-}
-
-impl PartialEq for OpCode {
-    // compare two opcode is equal.
-    fn eq(&self, other: &Self) -> bool {
-        self == other
     }
 }
 
@@ -128,7 +128,7 @@ trait ChunkImpl {
     fn emit_opcode(&mut self, opcode: OpCode);
     // display opcodes and values.
     // display value if it is OP_LOCAL else only opcode.
-    fn display(self);
+    fn display(&self);
 }
 
 impl ChunkImpl for Chunk {
@@ -141,14 +141,14 @@ impl ChunkImpl for Chunk {
         self.opcode_stack.push(opcode);
     }
 
-    fn display(self) {
+    fn display(&self) {
         let mut k = 0;
 
         for i in self.opcode_stack.iter() {
             print!("{}", opcode_string(i));
 
-            if i == &OpCode::OpLocal {
-                println!(" {}", self.values_stack.get(k).unwrap());
+            if opcode_string(i) == opcode_string(&OpCode::OpLocal) {
+                println!("{:>10}", self.values_stack.get(k).unwrap());
                 k += 1;
             } else {
                 println!();
@@ -168,7 +168,9 @@ fn transform(stack: Vec<char>) -> Chunk {
 
     for i in stack {
         match i {
-            '0'..='9' => chunk.emit_constant(i as i32),
+            '0'..='9' => chunk.emit_constant(
+                (i as i32) - 48
+            ),
 
             '+' => chunk.emit_opcode(OpCode::OpAdd),
             '-' => chunk.emit_opcode(OpCode::OpSubtract),
@@ -182,4 +184,39 @@ fn transform(stack: Vec<char>) -> Chunk {
     chunk.emit_opcode(OpCode::OpReturn);
 
     return chunk;
+}
+
+fn visitor(chunk: Chunk) {
+    let mut v: (f32, f32) = (0.0, 0.0);
+    let mut stack: Vec<f32> = Vec::new();
+    let mut k = 0;
+
+    for i in chunk.opcode_stack {
+        match i {
+            OpCode::OpLocal => {
+                stack.push(
+                    *chunk.values_stack.get(k).unwrap() as f32
+                );
+                k += 1;
+            }
+
+            OpCode::OpReturn => break,
+
+            _ => {
+                v.0 = stack.pop().unwrap();
+                v.1 = stack.pop().unwrap();
+
+                match i {
+                    OpCode::OpAdd => stack.push(v.1 + v.0),
+                    OpCode::OpSubtract => stack.push(v.1 - v.0),
+                    OpCode::OpMultiply => stack.push(v.1 * v.0),
+                    OpCode::OpDivide => stack.push(v.1 / v.0),
+
+                    _ => unimplemented!()
+                }
+            }
+        }
+    }
+
+    println!("{}", stack.last().unwrap());
 }
