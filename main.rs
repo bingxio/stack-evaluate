@@ -1,5 +1,3 @@
-use std::collections::HashMap;
-
 fn main() {
     let tests = vec![
         // 1 2 3 * + 4 -
@@ -7,7 +5,9 @@ fn main() {
         // 1 2 + 3 * 4 -
         "(1 + 2) * 3 - 4".to_string(),
         // 1 2 3 * + 4 5 + - 6 /
-        "1 + 2 * 3 - (4 + 5) / 6".to_string()
+        "1 + 2 * 3 - (4 + 5) / 6".to_string(),
+        // 7 9 /
+        "7 / 9".to_string()
     ];
 
     for i in tests {
@@ -33,6 +33,8 @@ fn main() {
 }
 
 fn get_priority(i: char) -> Option<u8> {
+    use std::collections::HashMap;
+
     let mut map: HashMap<char, u8> = HashMap::new();
 
     map.insert('+', 1);
@@ -187,8 +189,8 @@ fn transform(stack: Vec<char>) -> Chunk {
 }
 
 fn visitor(chunk: Chunk) {
-    let mut v: (f32, f32) = (0.0, 0.0);
     let mut stack: Vec<f32> = Vec::new();
+    
     let mut k = 0;
 
     for i in chunk.opcode_stack {
@@ -203,14 +205,14 @@ fn visitor(chunk: Chunk) {
             OpCode::OpReturn => break,
 
             _ => {
-                v.0 = stack.pop().unwrap();
-                v.1 = stack.pop().unwrap();
+                let a = stack.pop().unwrap();
+                let b = stack.pop().unwrap();
 
                 match i {
-                    OpCode::OpAdd => stack.push(v.1 + v.0),
-                    OpCode::OpSubtract => stack.push(v.1 - v.0),
-                    OpCode::OpMultiply => stack.push(v.1 * v.0),
-                    OpCode::OpDivide => stack.push(v.1 / v.0),
+                    OpCode::OpAdd => stack.push(b + a),
+                    OpCode::OpSubtract => stack.push(b - a),
+                    OpCode::OpMultiply => stack.push(b * a),
+                    OpCode::OpDivide => stack.push(b / a),
 
                     _ => unimplemented!()
                 }
@@ -218,5 +220,5 @@ fn visitor(chunk: Chunk) {
         }
     }
 
-    println!("{}", stack.last().unwrap());
+    println!("{:.6}", stack.last().unwrap());
 }
