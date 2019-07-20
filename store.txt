@@ -1,0 +1,6 @@
+OpLoadConst  5
+OpLoadConst  3
+OpBinaryAdd
+OpStore      a
+OpPrint
+OpReturn
