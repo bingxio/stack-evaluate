@@ -109,12 +109,12 @@ enum OpCode {
 
 fn opcode_string(op: &OpCode) -> &'static str {
     match op {
-        OpCode::OpAdd => "OP_ADD",
+        OpCode::OpAdd      => "OP_ADD",
         OpCode::OpSubtract => "OP_SUBTRACT",
         OpCode::OpMultiply => "OP_MULTIPLY",
-        OpCode::OpDivide => "OP_DIVIDE",
-        OpCode::OpLocal => "OP_LOCAL",
-        OpCode::OpReturn => "OP_RETURN"
+        OpCode::OpDivide   => "OP_DIVIDE",
+        OpCode::OpLocal    => "OP_LOCAL",
+        OpCode::OpReturn   => "OP_RETURN"
     }
 }
 

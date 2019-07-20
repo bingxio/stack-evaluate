@@ -1,4 +1,4 @@
-
+## Four Operational Execute With Stack
 
 [In my blog](https://blog.xyiio.cn/2019/07/07/2019-07-07/)
 
@@ -43,4 +43,16 @@ OP_LOCAL         9
 OP_DIVIDE
 OP_RETURN
 0.777778
+```
+
+## Some Bytecode Execute
+
+```
+OpLoadConst  5
+OpLoadConst  3
+OpBinaryAdd
+OpStore      a
+OpPrint
+OpReturn
+8
 ```
