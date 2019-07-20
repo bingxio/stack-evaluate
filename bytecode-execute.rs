@@ -117,7 +117,7 @@ impl<'a> Parser<'a> {
     fn execute(&mut self) {
         let (mut position, mut k) = (0, 0);
 
-        while let bytecode = self.code_stack.get(position).unwrap() {
+        while let Some(bytecode) = self.code_stack.get(position) {
             match bytecode {
                 OpCode::OpLoadConst => {
                     let a = self.data_stack.get(k).unwrap();
