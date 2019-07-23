@@ -1,29 +1,18 @@
-use std::{env, fs::File, io, iter, collections, fmt};
+use std::{env, fs::File, io, iter, collections};
 
+#[derive(Debug)]
 enum OpCode {
     OpLoadConst,        // load a const value to data stack.
     OpStore,            // store a value to global environment.
     OpBinaryAdd,        // operator of add.
-    OpBinaryLess,       // operator of less than.
-    OpBinaryGreater,    // operator of greater than.
+    OpBinarySub,        // operator of subtract.
+    OpBinaryMul,        // operator of multiply.
+    OpBinaryDiv,        // operator of divide.
+    OpCompareLess,      // operator of less than.
+    OpCompareGreater,   // operator of greater than.
     OpJumpIfFalse,      // if condition is false to jump else branch.
     OpPrint,            // display stack top value.
     OpReturn            // break program.
-}
-
-impl fmt::Display for OpCode {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{}", match *self {
-            OpCode::OpLoadConst     => "OpLoadConst",
-            OpCode::OpStore         => "OpStore",
-            OpCode::OpBinaryAdd     => "OpAdd",
-            OpCode::OpBinaryLess    => "OpBinaryLess",
-            OpCode::OpBinaryGreater => "OpBinaryGreater",
-            OpCode::OpJumpIfFalse   => "OpJumpIfFalse",
-            OpCode::OpPrint         => "OpPrint",
-            OpCode::OpReturn        => "OpReturn"
-        })
-    }
 }
 
 impl OpCode {
@@ -32,13 +21,16 @@ impl OpCode {
             OpCode::OpLoadConst,
             OpCode::OpStore,
             OpCode::OpBinaryAdd,
-            OpCode::OpBinaryLess,
-            OpCode::OpBinaryGreater,
+            OpCode::OpBinarySub,
+            OpCode::OpBinaryMul,
+            OpCode::OpBinaryDiv,
+            OpCode::OpCompareLess,
+            OpCode::OpCompareGreater,
             OpCode::OpJumpIfFalse,
             OpCode::OpPrint,
             OpCode::OpReturn
         ] {
-            if *a == format!("{}", i) {
+            if *a == format!("{:?}", i) {
                 return (true, i);
             }
         }
@@ -52,7 +44,7 @@ struct Parser<'a> {
     code_stack: Vec<OpCode>,
     data_stack: Vec<String>,
     exec_stack: Vec<f32>,
-    enviro_map: collections::HashMap<String, f32>
+    env_map: collections::HashMap<String, f32>
 }
 
 impl<'a> Parser<'a> {
@@ -64,6 +56,10 @@ impl<'a> Parser<'a> {
         (char_int >= 65 && char_int <= 90) || char_int == 95 || (char_int >= 97 && char_int <= 122)
     }
 
+    fn is_digit(&self, char_int: i32) -> bool {
+        char_int >= 48 && char_int <= 57
+    }
+
     fn parse(&mut self) {
         loop {
             match self.chars.next() {
@@ -72,10 +68,10 @@ impl<'a> Parser<'a> {
                         self.parse_skip_whitespace();
                     } else if self.is_identifier(character as i32) {
                         self.parse_opcode(character);
-                    } else {
-                        self.data_stack.push(character.to_string());
+                    } else if self.is_digit(character as i32) {
+                        self.parse_digit(character);
                     }
-                },
+                }
                 None => break
             }
         }
@@ -105,13 +101,30 @@ impl<'a> Parser<'a> {
             }
         }
 
-        if OpCode::is_opcode(&code).0 == false {
-            self.data_stack.push(code);
-        } else {
+        if OpCode::is_opcode(&code).0 != false {
             self.code_stack.push(
                 OpCode::is_opcode(&code).1
             );
+        } else {
+            self.data_stack.push(code);
         }
+    }
+
+    fn parse_digit(&mut self, advance: char) {
+        let mut digit = String::new();
+
+        digit.push(advance);
+
+        while let Some(&character) = self.chars.peek() {
+            if self.is_digit(character as i32) {
+                digit.push(character);
+                self.chars.next();
+            } else {
+                break;
+            }
+        }
+
+        self.data_stack.push(digit);
     }
 
     fn execute(&mut self) {
@@ -125,6 +138,8 @@ impl<'a> Parser<'a> {
 
                     self.exec_stack.push(a);
 
+                    println!("{:?}", self.exec_stack);
+
                     k += 1;
                 }
 
@@ -132,7 +147,7 @@ impl<'a> Parser<'a> {
                     let a = self.data_stack.get(k).unwrap();
                     let b = self.exec_stack.last().unwrap();
 
-                    self.enviro_map.insert(a.clone(), *b);
+                    self.env_map.insert(a.clone(), *b);
 
                     k += 1;
                 }
@@ -140,9 +155,11 @@ impl<'a> Parser<'a> {
                 OpCode::OpJumpIfFalse => {
                     position = self.data_stack.get(k).unwrap().parse().unwrap();
                     k += 1;
+
+                    continue;
                 }
 
-                OpCode::OpPrint => println!("{}", self.exec_stack.last().unwrap()),
+                OpCode::OpPrint => println!("{:.6}", self.exec_stack.last().unwrap()),
 
                 OpCode::OpReturn => break,
 
@@ -152,12 +169,15 @@ impl<'a> Parser<'a> {
 
                     match bytecode {
                         OpCode::OpBinaryAdd => self.exec_stack.push(b + a),
+                        OpCode::OpBinarySub => self.exec_stack.push(b - a),
+                        OpCode::OpBinaryMul => self.exec_stack.push(b * a),
+                        OpCode::OpBinaryDiv => self.exec_stack.push(b / a),
 
-                        OpCode::OpBinaryLess => self.exec_stack.push(
-                            if b > a { 1. } else { 0. }
-                        ),
-                        OpCode::OpBinaryGreater => self.exec_stack.push(
+                        OpCode::OpCompareLess => self.exec_stack.push(
                             if b < a { 1. } else { 0. }
+                        ),
+                        OpCode::OpCompareGreater => self.exec_stack.push(
+                            if b > a { 1. } else { 0. }
                         ),
 
                         _ => unimplemented!()
@@ -203,7 +223,7 @@ fn main() {
         code_stack: Vec::new(),
         data_stack: Vec::new(),
         exec_stack: Vec::new(),
-        enviro_map: collections::HashMap::new()
+        env_map: collections::HashMap::new()
     };
 
     parser.parse();

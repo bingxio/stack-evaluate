@@ -1,0 +1,9 @@
+OpLoadConst         50
+OpLoadConst         40
+OpCompareGreater
+OpJumpIfFalse       5
+OpLoadConst         62
+OpLoadConst         84
+OpStore             a
+OpPrint
+OpReturn

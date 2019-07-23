@@ -1,5 +1,5 @@
-OpLoadConst  5
-OpLoadConst  3
+OpLoadConst  52
+OpLoadConst  33
 OpBinaryAdd
 OpStore      a
 OpPrint

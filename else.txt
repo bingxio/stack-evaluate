@@ -1,0 +1,5 @@
+OpLoadConst     12
+OpLoadConst     13
+OpCompareLess
+OpPrint
+OpReturn
