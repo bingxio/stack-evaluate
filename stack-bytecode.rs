@@ -138,8 +138,6 @@ impl<'a> Parser<'a> {
 
                     self.exec_stack.push(a);
 
-                    println!("{:?}", self.exec_stack);
-
                     k += 1;
                 }
 
@@ -153,7 +151,9 @@ impl<'a> Parser<'a> {
                 }
 
                 OpCode::OpJumpIfFalse => {
-                    position = self.data_stack.get(k).unwrap().parse().unwrap();
+                    let offset: usize = self.data_stack.get(k).unwrap().parse().unwrap();
+
+                    position = offset;
                     k += 1;
 
                     continue;
