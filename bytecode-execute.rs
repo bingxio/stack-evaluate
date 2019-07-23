@@ -1,13 +1,14 @@
-use std::{env, fs::File, io::prelude::*, iter, collections, fmt, ops, cmp};
+use std::{env, fs::File, io, iter, collections, fmt};
 
 enum OpCode {
-    OpLoadConst,
-    OpStore,
-    OpBinaryAdd,
-    OpBinaryLess,
-    OpBinaryGreater,
-    OpPrint,
-    OpReturn
+    OpLoadConst,        // load a const value to data stack.
+    OpStore,            // store a value to global environment.
+    OpBinaryAdd,        // operator of add.
+    OpBinaryLess,       // operator of less than.
+    OpBinaryGreater,    // operator of greater than.
+    OpJumpIfFalse,      // if condition is false to jump else branch.
+    OpPrint,            // display stack top value.
+    OpReturn            // break program.
 }
 
 impl fmt::Display for OpCode {
@@ -18,57 +19,10 @@ impl fmt::Display for OpCode {
             OpCode::OpBinaryAdd     => "OpAdd",
             OpCode::OpBinaryLess    => "OpBinaryLess",
             OpCode::OpBinaryGreater => "OpBinaryGreater",
+            OpCode::OpJumpIfFalse   => "OpJumpIfFalse",
             OpCode::OpPrint         => "OpPrint",
             OpCode::OpReturn        => "OpReturn"
         })
-    }
-}
-
-enum Value {
-    Double(f32),
-    Boolean(bool)
-}
-
-impl fmt::Display for Value {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{}", match *self {
-            Value::Boolean(a) => if a {
-                "true"
-            } else {
-                "false"
-            },
-            Value::Double(b) => {
-                &b.to_string()
-            }
-        })
-    }
-}
-
-impl ops::Add for Value {
-    type Output = f32;
-
-    fn add(self, other: Self) -> f32 {
-        self + other
-    }
-}
-
-impl cmp::PartialOrd for Value {
-    fn partial_cmp(&self, other: &Value) -> Option<cmp::Ordering> {
-        Some(cmp::Ordering::Less)
-    }
-}
-
-impl cmp::PartialEq for Value {
-    fn eq(&self, other: &Value) -> bool {
-        match *self {
-            Value::Boolean(a) => if a {
-                true
-            } else {
-                false
-            }
-
-            _ => false
-        }
     }
 }
 
@@ -80,6 +34,7 @@ impl OpCode {
             OpCode::OpBinaryAdd,
             OpCode::OpBinaryLess,
             OpCode::OpBinaryGreater,
+            OpCode::OpJumpIfFalse,
             OpCode::OpPrint,
             OpCode::OpReturn
         ] {
@@ -96,8 +51,8 @@ struct Parser<'a> {
     chars: iter::Peekable<std::str::Chars<'a>>,
     code_stack: Vec<OpCode>,
     data_stack: Vec<String>,
-    exec_stack: Vec<Value>,
-    enviro_map: collections::HashMap<String, Value>
+    exec_stack: Vec<f32>,
+    enviro_map: collections::HashMap<String, f32>
 }
 
 impl<'a> Parser<'a> {
@@ -168,10 +123,10 @@ impl<'a> Parser<'a> {
                     let a = self.data_stack.get(k).unwrap();
                     let a: f32 = a.parse().unwrap();
 
-                    self.exec_stack.push(Value::Double(a));
+                    self.exec_stack.push(a);
 
                     k += 1;
-                },
+                }
 
                 OpCode::OpStore => {
                     let a = self.data_stack.get(k).unwrap();
@@ -179,6 +134,11 @@ impl<'a> Parser<'a> {
 
                     self.enviro_map.insert(a.clone(), *b);
 
+                    k += 1;
+                }
+
+                OpCode::OpJumpIfFalse => {
+                    position = self.data_stack.get(k).unwrap().parse().unwrap();
                     k += 1;
                 }
 
@@ -191,16 +151,13 @@ impl<'a> Parser<'a> {
                     let b = self.exec_stack.pop().unwrap();
 
                     match bytecode {
-                        OpCode::OpBinaryAdd => self.exec_stack.push(
-                            Value::Double(b + a)
-                        ),
+                        OpCode::OpBinaryAdd => self.exec_stack.push(b + a),
 
                         OpCode::OpBinaryLess => self.exec_stack.push(
-                            if b < a {
-                                Value::Boolean(true)
-                            } else {
-                                Value::Boolean(false)
-                            }
+                            if b > a { 1. } else { 0. }
+                        ),
+                        OpCode::OpBinaryGreater => self.exec_stack.push(
+                            if b < a { 1. } else { 0. }
                         ),
 
                         _ => unimplemented!()
@@ -214,11 +171,32 @@ impl<'a> Parser<'a> {
 }
 
 fn main() {
-    let path = env::args().nth(1).expect("Cannot found test file path.");
-    let mut file = File::open(path).unwrap();
-
     let mut contents = String::new();
-    file.read_to_string(&mut contents).unwrap();
+
+    if env::args().len() == 2 {
+        use io::prelude::*;
+
+        File::open(
+            env::args().nth(1).expect("Could not found test file path.")
+        ).unwrap().read_to_string(&mut contents).unwrap();
+    } else {
+        use io::{Write};
+
+        loop {
+            let mut input = String::new();
+
+            print!(">>> ");
+
+            io::stdout().flush().unwrap();
+            io::stdin().read_line(&mut input).expect("Cannot read line !");
+
+            if input == "OpReturn\n" {
+                break;
+            } else {
+                contents.push_str(&input);
+            }
+        }
+    }
 
     let mut parser = Parser {
         chars: contents.chars().peekable(),
