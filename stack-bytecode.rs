@@ -11,7 +11,6 @@ enum OpCode {
     OpCompareLess,      // operator of less than.
     OpCompareGreater,   // operator of greater than.
     OpJumpIfFalse,      // if condition is false to jump else branch.
-    OpLoop,             // dead cycle. 
     OpPrint,            // display stack top value.
     OpReturn            // break program.
 }
@@ -28,7 +27,6 @@ impl OpCode {
             OpCode::OpCompareLess,
             OpCode::OpCompareGreater,
             OpCode::OpJumpIfFalse,
-            OpCode::OpLoop,
             OpCode::OpPrint,
             OpCode::OpReturn
         ] {
@@ -163,10 +161,6 @@ impl<'a> Parser<'a> {
                     k += jump_offset;
 
                     continue;
-                }
-
-                OpCode::OpLoop => {
-
                 }
 
                 OpCode::OpPrint => println!("{:.6}", self.exec_stack.last().unwrap()),
