@@ -153,8 +153,12 @@ impl<'a> Parser<'a> {
                 OpCode::OpJumpIfFalse => {
                     let offset: usize = self.data_stack.get(k).unwrap().parse().unwrap();
 
-                    position = offset;
                     k += 1;
+
+                    let jump_offset: usize = self.data_stack.get(k).unwrap().parse().unwrap();
+
+                    position = offset;
+                    k += jump_offset;
 
                     continue;
                 }

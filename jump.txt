@@ -1,9 +1,10 @@
 OpLoadConst         50
 OpLoadConst         40
 OpCompareLess       
-OpJumpIfFalse       6
-OpLoadConst         62
+OpJumpIfFalse       6 2
+OpLoadConst         56
 OpPrint             
 OpLoadConst         84
 OpPrint             
 OpReturn
+
