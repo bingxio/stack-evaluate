@@ -1,0 +1,4 @@
+OpLoadConst 34
+OpLoop      2
+OpPrint
+OpReturn

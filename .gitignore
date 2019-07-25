@@ -1,3 +1,5 @@
 .idea
 out
 target
+stack-bytecode
+stack-four-operational-execute
