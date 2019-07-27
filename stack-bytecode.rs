@@ -1,7 +1,7 @@
 use std::{env, fs::File, io, iter, collections};
 
 #[derive(Debug)]
-enum OpCode {
+enum Instruction {
     OpLoadConst,        // load a const value to data stack.
     OpStore,            // store a value to global environment.
     OpBinaryAdd,        // operator of add.
@@ -15,33 +15,33 @@ enum OpCode {
     OpReturn            // break program.
 }
 
-impl OpCode {
-    fn is_opcode(a: &String) -> (bool, OpCode) {
+impl Instruction {
+    fn is_instruction(a: &String) -> (bool, Instruction) {
         for i in vec![
-            OpCode::OpLoadConst,
-            OpCode::OpStore,
-            OpCode::OpBinaryAdd,
-            OpCode::OpBinarySub,
-            OpCode::OpBinaryMul,
-            OpCode::OpBinaryDiv,
-            OpCode::OpCompareLess,
-            OpCode::OpCompareGreater,
-            OpCode::OpJumpIfFalse,
-            OpCode::OpPrint,
-            OpCode::OpReturn
+            Instruction::OpLoadConst,
+            Instruction::OpStore,
+            Instruction::OpBinaryAdd,
+            Instruction::OpBinarySub,
+            Instruction::OpBinaryMul,
+            Instruction::OpBinaryDiv,
+            Instruction::OpCompareLess,
+            Instruction::OpCompareGreater,
+            Instruction::OpJumpIfFalse,
+            Instruction::OpPrint,
+            Instruction::OpReturn
         ] {
             if *a == format!("{:?}", i) {
                 return (true, i);
             }
         }
 
-        return (false, OpCode::OpReturn);
+        return (false, Instruction::OpReturn);
     }
 }
 
 struct Parser<'a> {
     chars: iter::Peekable<std::str::Chars<'a>>,
-    code_stack: Vec<OpCode>,
+    code_stack: Vec<Instruction>,
     data_stack: Vec<String>,
     exec_stack: Vec<f32>,
     env_map: collections::HashMap<String, f32>
@@ -67,7 +67,7 @@ impl<'a> Parser<'a> {
                     if self.is_whitespace(character as i32) {
                         self.parse_skip_whitespace();
                     } else if self.is_identifier(character as i32) {
-                        self.parse_opcode(character);
+                        self.parse_instruction(character);
                     } else if self.is_digit(character as i32) {
                         self.parse_digit(character);
                     }
@@ -87,7 +87,7 @@ impl<'a> Parser<'a> {
         }
     }
 
-    fn parse_opcode(&mut self, advance: char) {
+    fn parse_instruction(&mut self, advance: char) {
         let mut code = String::new();
 
         code.push(advance);
@@ -101,9 +101,9 @@ impl<'a> Parser<'a> {
             }
         }
 
-        if OpCode::is_opcode(&code).0 != false {
+        if Instruction::is_instruction(&code).0 != false {
             self.code_stack.push(
-                OpCode::is_opcode(&code).1
+                Instruction::is_instruction(&code).1
             );
         } else {
             self.data_stack.push(code);
@@ -132,7 +132,7 @@ impl<'a> Parser<'a> {
 
         while let Some(bytecode) = self.code_stack.get(position) {
             match bytecode {
-                OpCode::OpLoadConst => {
+                Instruction::OpLoadConst => {
                     let a = self.data_stack.get(k).unwrap();
                     let a: f32 = a.parse().unwrap();
 
@@ -141,7 +141,7 @@ impl<'a> Parser<'a> {
                     k += 1;
                 }
 
-                OpCode::OpStore => {
+                Instruction::OpStore => {
                     let a = self.data_stack.get(k).unwrap();
                     let b = self.exec_stack.last().unwrap();
 
@@ -150,7 +150,7 @@ impl<'a> Parser<'a> {
                     k += 1;
                 }
 
-                OpCode::OpJumpIfFalse => {
+                Instruction::OpJumpIfFalse => {
                     let offset: usize = self.data_stack.get(k).unwrap().parse().unwrap();
 
                     k += 1;
@@ -163,24 +163,24 @@ impl<'a> Parser<'a> {
                     continue;
                 }
 
-                OpCode::OpPrint => println!("{:.6}", self.exec_stack.last().unwrap()),
+                Instruction::OpPrint => println!("{:.6}", self.exec_stack.last().unwrap()),
 
-                OpCode::OpReturn => break,
+                Instruction::OpReturn => break,
 
                 _ => {
                     let a = self.exec_stack.pop().unwrap();
                     let b = self.exec_stack.pop().unwrap();
 
                     match bytecode {
-                        OpCode::OpBinaryAdd => self.exec_stack.push(b + a),
-                        OpCode::OpBinarySub => self.exec_stack.push(b - a),
-                        OpCode::OpBinaryMul => self.exec_stack.push(b * a),
-                        OpCode::OpBinaryDiv => self.exec_stack.push(b / a),
+                        Instruction::OpBinaryAdd => self.exec_stack.push(b + a),
+                        Instruction::OpBinarySub => self.exec_stack.push(b - a),
+                        Instruction::OpBinaryMul => self.exec_stack.push(b * a),
+                        Instruction::OpBinaryDiv => self.exec_stack.push(b / a),
 
-                        OpCode::OpCompareLess => self.exec_stack.push(
+                        Instruction::OpCompareLess => self.exec_stack.push(
                             if b < a { 1. } else { 0. }
                         ),
-                        OpCode::OpCompareGreater => self.exec_stack.push(
+                        Instruction::OpCompareGreater => self.exec_stack.push(
                             if b > a { 1. } else { 0. }
                         ),
 
